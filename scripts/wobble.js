@@ -226,6 +226,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
 
   function go_crazy(){
     if (crazy === false){
+      $('p').text("");
       gainNode2.disconnect();
       document.getElementById("crazy");
       crazy_time = [214.28,428.57, 857.14];
