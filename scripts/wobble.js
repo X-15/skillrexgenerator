@@ -1,10 +1,14 @@
-var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index, played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy;
+var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index, played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep,
+    random_crazy, random_crazy2, crazy_time;
   function init() {
     stage = new createjs.Stage("canvas");
     draw_stage();
     grow = 0;
     context = new webkitAudioContext();
     gainNode = context.createGainNode();
+    gainNode2 = context.createGainNode();
+    gainNode2.gain.value = 0.2;
+    gainNode2.connect(context.destination);
     oscillator = context.createOscillator();
     oscillator2 = context.createOscillator();
     oscillator3 = context.createOscillator();
@@ -16,10 +20,14 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     random_color = 0;
     music = true;
     crazy = false;
+    random_crazy = 2;
+    random_crazy = 2;
   }
 
 
   function tick(event) {
+    if (crazy === false){
+      gainNode2.connect(context.destination);
     //holder.rotation += 4;
     var l = holder.getNumChildren();
     for (var i=0; i<l; i++) {
@@ -29,6 +37,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
         remove_and_redraw(child);
 
       }
+    }
     }
     stage.update(event);
   }
@@ -82,39 +91,39 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   }
 
   function play_sound(){
-    var c_major = [523.25,587.33,698.46,783.99,880.00,1046.50];
+    var c_major = [392.00,466.16,532.25,587.33,698.46,783.99];
     if ((random_color < 120) && (random_color > 0 )){
       for (var i = 0; i < c_major.length; i++){
         c_major[i] = c_major[i] * 2;
       }
     }else {
-        c_major = [523.25,587.33,698.46,783.99,880.00,1046.50];
+        c_major = [392.00,466.16,532.25,587.33,698.46,783.99];
       }
     index = Math.floor(Math.random()*6);
     var c_major_note = c_major[index];
     oscillator.type = 3; // triangle wave
     oscillator.frequency.value = c_major_note;
-    oscillator.connect(context.destination);
+    oscillator.connect(gainNode2);
     oscillator.noteOn && oscillator.noteOn(0);
 
   }
 
   function play_harmony(){
-    var harmony = [329.63,349.23,440.00,493.88,523.25,659.26];
+    var harmony = [466.16,587.33,622.25,698.46,880.00,932.33];
     var harmony_note = harmony[index];
     oscillator3.type = 1; // triangle wave
     oscillator3.frequency.value = harmony_note;
-    oscillator3.connect(context.destination);
+    oscillator3.connect(gainNode2);
     oscillator3.noteOn && oscillator3.noteOn(0);
   }
 
   function play_bass(){
-    var c_bass = [130.81, 174.61, 196.00];
+    var c_bass = [49.00,65.41,73.42];
     var c_bass_note = c_bass[Math.floor(Math.random()*3)];
     var how_much_wobble = Math.random()*500
     setInterval(function() {wobble(c_bass_note)}, how_much_wobble);
     setInterval(function() {bass_me(pitch, volume)}, 500);
-    gainNode.connect(context.destination);
+    gainNode.connect(gainNode2);
     oscillator2.noteOn && oscillator2.noteOn(0);
 
   }
@@ -133,6 +142,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     clearInterval(change_color);
     clearInterval(dancing_squares);
     reset_color();
+    dubstep.stop();
     crazy = false;
     playing = false;
   }
@@ -143,12 +153,23 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     volume: 1
   });
 
+    dubstep = new Howl({
+    urls: ['audio/gocrazy.wav'],
+    loop: false,
+    volume: 1,
+    onend: function(){
+      stop_music();
+    }
+  });
+
   function play_drums(){
+    if (crazy === false){
     if (playing === false){
     document.getElementById("drums");
     drums.play();
     playing = true;
     }
+  }
   }
 
   function display_notes(random_color){
@@ -198,15 +219,25 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     $('body').css("background-color", "black");
   }
 
+  function random_change_time(){
+    random_crazy = Math.floor(Math.random() * 3);
+    random_crazy2 = Math.floor(Math.random() * 3);
+  }
+
   function go_crazy(){
     if (crazy === false){
+      gainNode2.disconnect();
       document.getElementById("crazy");
-      change_color = setInterval(color,200);
-      dancing_squares=setInterval(draw_squares,400);
+      crazy_time = [214.28,428.57, 857.14];
+      random_change_time();
+      setInterval(random_change_time, 3428.56);
+      change_color = setInterval(color,crazy_time[random_crazy]);
+      dancing_squares=setInterval(draw_squares,crazy_time[random_crazy2]);
+      dubstep.play();
       crazy = true;
-      if (playing === false){
-        play_drums();
-        playing = true;
+      if (playing === true){
+        stop_music();
+        playing = false;
       }
     }
   }
