@@ -1,5 +1,5 @@
 var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index,
-   played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep,
+   played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep1, dubstep2,
     random_crazy, random_crazy2, crazy_time, crazy_position_x, crazy_position_y, c_major,
     range,range_y,current,current_y;
   function init() {
@@ -174,7 +174,8 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     clearInterval(change_color);
     clearInterval(dancing_squares);
     reset_color();
-    dubstep.stop();
+    dubstep1.stop();
+    dubstep2.stop();
     crazy = false;
     playing = false;
     remove_crazy_music();
@@ -186,8 +187,17 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     volume: 1
   });
 
-    dubstep = new Howl({
+    dubstep1 = new Howl({
     urls: ['audio/gocrazy.wav'],
+    loop: false,
+    volume: 1,
+    onend: function(){
+      stop_music();
+    }
+  });
+
+    dubstep2 = new Howl({
+    urls: ['audio/gocrazy2.wav'],
     loop: false,
     volume: 1,
     onend: function(){
@@ -280,7 +290,12 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
       change_color = setInterval(color,crazy_time[random_crazy]);
       dancing_squares=setInterval(draw_squares,crazy_time[random_crazy2]);
       setInterval(make_color, 1714.38);
-      dubstep.play();
+      var song_choice = Math.floor(Math.random() * 2);
+      if (song_choice === 0){
+        dubstep1.play();
+      }else{
+        dubstep2.play();
+      }
       go_crazy_music();
       crazy = true;
       if (playing === true){
