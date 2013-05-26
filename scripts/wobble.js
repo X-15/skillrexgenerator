@@ -1,6 +1,7 @@
 var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index,
    played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep,
-    random_crazy, random_crazy2, crazy_time, crazy_position_x, crazy_position_y, c_major;
+    random_crazy, random_crazy2, crazy_time, crazy_position_x, crazy_position_y, c_major,
+    range,range_y,current,current_y;
   function init() {
     stage = new createjs.Stage("canvas");
     draw_stage();
@@ -16,7 +17,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     filter.Q.value = 0;
     filter.gain.value = 0;
     soloNode = context.createGainNode();
-    soloNode.gain.value = 0.3;
+    soloNode.gain.value = 0.5;
     soloNode.connect(context.destination);
     oscillator = context.createOscillator();
     oscillator2 = context.createOscillator();
@@ -36,7 +37,6 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   function tick(event) {
     if (crazy === false){
       gainNode2.connect(context.destination);
-    //holder.rotation += 4;
     var l = holder.getNumChildren();
     for (var i=0; i<l; i++) {
       var child = holder.getChildAt(i);
@@ -59,6 +59,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
       shape.x = Math.random()*700-150;
       shape.y = Math.random()*700-150;
       shape.alpha = Math.random();
+      shape.rotation += Math.random() * 5 - 2.5;
       holder.addChild(shape);
     }
   }
@@ -82,6 +83,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
       shape.x = Math.random()*700-150;
       shape.y = Math.random()*700-150;
       shape.alpha = Math.random();
+      shape.rotation += Math.random() * 5 - 2.5;
       var index = holder.children.indexOf(child);
       holder.children.splice((index), 1);
       holder.addChild(shape);
@@ -119,7 +121,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   function play_harmony(){
     var harmony = [466.16,587.33,622.25,698.46,880.00,932.33];
     var harmony_note = harmony[index];
-    oscillator3.type = 1; // triangle wave
+    oscillator3.type = 1; // square wave
     oscillator3.frequency.value = harmony_note;
     oscillator3.connect(gainNode2);
     oscillator3.noteOn && oscillator3.noteOn(0);
@@ -128,7 +130,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   function play_bass(){
     var c_bass = [49.00,65.41,73.42];
     var c_bass_note = c_bass[Math.floor(Math.random()*3)];
-    var how_much_wobble = Math.random()*500
+    var how_much_wobble = Math.random()*500;
     setInterval(function() {wobble(c_bass_note)}, how_much_wobble);
     setInterval(function() {bass_me(pitch, volume)}, 500);
     gainNode.connect(gainNode2);
@@ -137,13 +139,13 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   }
 
   function solo(){
-    var range = window.innerWidth / 6;
-    var solo_major = [392.00,466.16,532.25,554.37,587.33,698.46];
-    var high_major = [783.99,932.33,1046.50,1108.73,1174.66,1396.91];
-    var low_major = [196.00,233.08,261.63,277.18,293.66,349.23];
-    var range_y = window.innerHeight / 3;
-    var current = Math.floor(crazy_position_x / range);
-    var current_y = Math.floor(crazy_position_y / range_y);
+    var solo_major = [392.00,466.16,532.25,587.33,698.46,783.99];
+    var high_major = [783.99,932.33,1046.50,1174.66,1396.91,1567.98];
+    var low_major = [196.00,233.08,261.63,293.66,349.23, 392.00];
+    range = window.innerWidth / 6;
+    range_y = window.innerHeight / 3;
+    current = Math.floor(crazy_position_x / range);
+    current_y = Math.floor(crazy_position_y / range_y);
     soloOsc.type = 1;
     if (current_y === 2){
       soloOsc.frequency.value=low_major[current];
@@ -290,7 +292,6 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
 
   function go_crazy_music(){
       stage.addEventListener("stagemousemove", function(evt) {
-      //alert("the canvas was clicked at "+evt.stageX+","+evt.stageY);
       crazy_position_x = evt.stageX;
       crazy_position_y = evt.stageY;
       solo();
