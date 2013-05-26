@@ -1,5 +1,6 @@
-var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index, played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep,
-    random_crazy, random_crazy2, crazy_time;
+var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, context, draw, index,
+   played_notes, playing, pitch, wob, bass, volume, gainNode, music, crazy, dubstep,
+    random_crazy, random_crazy2, crazy_time, crazy_position_x, crazy_position_y, c_major;
   function init() {
     stage = new createjs.Stage("canvas");
     draw_stage();
@@ -7,11 +8,15 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     context = new webkitAudioContext();
     gainNode = context.createGainNode();
     gainNode2 = context.createGainNode();
-    gainNode2.gain.value = 0.2;
+    gainNode2.gain.value = 0.1;
     gainNode2.connect(context.destination);
+    soloNode = context.createGainNode();
+    soloNode.gain.value = 0.3;
+    soloNode.connect(context.destination);
     oscillator = context.createOscillator();
     oscillator2 = context.createOscillator();
     oscillator3 = context.createOscillator();
+    soloOsc = context.createOscillator();
     draw_squares();
     played_notes = 0;
     createjs.Ticker.addEventListener("tick", tick);
@@ -20,8 +25,6 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     random_color = 0;
     music = true;
     crazy = false;
-    random_crazy = 2;
-    random_crazy = 2;
   }
 
 
@@ -91,7 +94,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   }
 
   function play_sound(){
-    var c_major = [392.00,466.16,532.25,587.33,698.46,783.99];
+    c_major = [392.00,466.16,532.25,587.33,698.46,783.99];
     if ((random_color < 120) && (random_color > 0 )){
       for (var i = 0; i < c_major.length; i++){
         c_major[i] = c_major[i] * 2;
@@ -128,6 +131,26 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
 
   }
 
+  function solo(){
+    var range = window.innerWidth / 6;
+    var solo_major = [392.00,466.16,532.25,554.37,587.33,698.46];
+    var high_major = [783.99,932.33,1046.50,1108.73,1174.66,1396.91];
+    var low_major = [196.00,233.08,261.63,277.18,293.66,349.23];
+    var range_y = window.innerHeight / 3;
+    var current = Math.floor(crazy_position_x / range);
+    var current_y = Math.floor(crazy_position_y / range_y);
+    soloOsc.type = 3;
+    if (current_y === 2){
+      soloOsc.frequency.value=low_major[current];
+    } else if (current_y === 1){
+      soloOsc.frequency.value=solo_major[current];
+    } else {
+      soloOsc.frequency.value=high_major[current];
+    }
+    soloOsc.connect(soloNode);
+    soloOsc.noteOn && soloOsc.noteOn(0);
+  }
+
   function stop_music(){
     document.getElementById("stop");
     clearInterval(wob);
@@ -136,6 +159,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     oscillator.disconnect();
     oscillator2.disconnect();
     oscillator3.disconnect();
+    soloOsc.disconnect();
     drums.stop();
     draw_squares();
     played_notes = 0;
@@ -145,10 +169,11 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     dubstep.stop();
     crazy = false;
     playing = false;
+    remove_crazy_music();
   }
 
     drums = new Howl({
-    urls: ['audio/Loop6.wav'],
+    urls: ['audio/drums.wav'],
     loop: true,
     volume: 1
   });
@@ -195,7 +220,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
 
 
   function wobble(frequency){
-    wobbly = Math.random() * 10;
+    wobbly = Math.random() * 2;
     pitch = frequency + wobbly;
     volume = (Math.random() / 2) + 0.5;
   }
@@ -220,8 +245,20 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
   }
 
   function random_change_time(){
-    random_crazy = Math.floor(Math.random() * 3);
-    random_crazy2 = Math.floor(Math.random() * 3);
+    random_crazy = Math.floor(Math.random() * 4);
+    random_crazy2 = Math.floor(Math.random() * 4);
+  }
+
+  function make_color(){
+    if (crazy === true){
+    clearInterval(change_color);
+    clearInterval(dancing_squares);
+    change_color = setInterval(color,crazy_time[random_crazy]);
+    dancing_squares=setInterval(draw_squares,crazy_time[random_crazy2]);
+    }else{
+      clearInterval(change_color);
+      clearInterval(dancing_squares);
+    }
   }
 
   function go_crazy(){
@@ -229,12 +266,14 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
       $('p').text("");
       gainNode2.disconnect();
       document.getElementById("crazy");
-      crazy_time = [214.28,428.57, 857.14];
+      crazy_time = [107.14,214.28,428.57, 857.14];
       random_change_time();
-      setInterval(random_change_time, 3428.56);
+      setInterval(random_change_time, 1000);
       change_color = setInterval(color,crazy_time[random_crazy]);
       dancing_squares=setInterval(draw_squares,crazy_time[random_crazy2]);
+      setInterval(make_color, 1714.38);
       dubstep.play();
+      go_crazy_music();
       crazy = true;
       if (playing === true){
         stop_music();
@@ -242,5 +281,19 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
       }
     }
   }
+
+  function go_crazy_music(){
+      stage.addEventListener("stagemousemove", function(evt) {
+      //alert("the canvas was clicked at "+evt.stageX+","+evt.stageY);
+      crazy_position_x = evt.stageX;
+      crazy_position_y = evt.stageY;
+      solo();
+      });
+    }
+
+  function remove_crazy_music(){
+    stage.removeAllEventListeners();
+  }
+
 
 
