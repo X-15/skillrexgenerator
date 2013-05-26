@@ -10,6 +10,11 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     gainNode2 = context.createGainNode();
     gainNode2.gain.value = 0.1;
     gainNode2.connect(context.destination);
+    filter = context.createBiquadFilter();
+    filter.type = 0;
+    filter.frequency.value = 440;
+    filter.Q.value = 0;
+    filter.gain.value = 0;
     soloNode = context.createGainNode();
     soloNode.gain.value = 0.3;
     soloNode.connect(context.destination);
@@ -139,7 +144,7 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     var range_y = window.innerHeight / 3;
     var current = Math.floor(crazy_position_x / range);
     var current_y = Math.floor(crazy_position_y / range_y);
-    soloOsc.type = 3;
+    soloOsc.type = 1;
     if (current_y === 2){
       soloOsc.frequency.value=low_major[current];
     } else if (current_y === 1){
@@ -147,7 +152,8 @@ var stage, holder, grow, oscillator, color, oscillator2, oscillator3, drums, con
     } else {
       soloOsc.frequency.value=high_major[current];
     }
-    soloOsc.connect(soloNode);
+    soloOsc.connect(filter);
+    filter.connect(soloNode);
     soloOsc.noteOn && soloOsc.noteOn(0);
   }
 
